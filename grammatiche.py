@@ -49,6 +49,7 @@ class Grammatica:
             raise ValueError("Argomento non valido") #da rivedere
         
         self.regole[chiave] = valore
+    
     def genera_stringa(self):
         # import random per scegliere con quale simbolo procedere?
         ris = [self.simbolo_iniziale]
@@ -56,12 +57,31 @@ class Grammatica:
         while ctrl:
             for i range(len(ris)):
                 if ris[i] in non_terminali:
-                    ris[i] = random.choice(regole[i])
-            tmp = 0
+                    ris[i] = list(random.choice(regole[i]))
+           #tutto questo while non funge
+           #ris sarà sempre una lista di un solo elemento
+           #bisogna lavorare su una stringa usando replace()
+           tmp = 0
             for elem in ris:
                 if elem in non_terminali:
                     tmp += 1
             ctrl = bool(tmp)
         return ris
-        
+    
+    def genera_nIterazioni(self, n):
+        pnt = self.simbolo_iniziale # puntatore settato al primo elemento
+
+        # lista di stringhe
+        lst_tot = []
+        lst_ris = []
+
+        for j in range(len(self.regole[pnt])):
+            tmp = self.regole[pnt][j]
+
+            # come cazzo faccio?????
+            # replace() per sostituire i termini all'interno tmp (stringa)
+            # ma come faccio a fare tutte le sostituzione possibili * n volte?
+
+            lst_tot.append(tmp)
+
     def __str__(self):
