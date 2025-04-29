@@ -1,5 +1,16 @@
 import random
 
+#template per commentare funzioni (da implementare):
+"""Breve descrizione
+Argomenti: descrizione degli argomenti
+
+Return: cosa restituisce la funzione
+
+Eccezioni: quali errori lancia la funzione
+"""
+
+# struttura per creare un albero
+# in questo codice viene usato per memorizzare le varie derivazioni
 class Nodo:
     def __init__(self, valore, profondità = 0):
         self.valore = valore
@@ -8,7 +19,8 @@ class Nodo:
 
     def aggiungi_figlio(self, figlio):
         self.figli.append(figlio)
-
+        
+# funzione per stampare l'albero, per ora la lasciamo globale 
 def stampa_albero(nodo, livello=0):
     print(" " * livello * 2 + str(nodo.profondita) +" "+ str(nodo.valore))
     for figlio in nodo.figli:
@@ -18,11 +30,16 @@ class Grammatica:
     def __init__(self):
         self.non_terminali = set()  # array dei simboli non terminali
         self.terminali = set()  # array dei simboli terminali
-        self.regole = dict()  # dizionario
+        # dizionario con:
+        # chiave -> simbolo non terminale
+        # valore -> tupla di possibili produzioni 
+        self.regole = dict()  
         self.simbolo_iniziale = None
-        self.radice = None
-
-    def add_nt(self, simbolo):  # aggiunge simboli non terminali
+        self.radice = None # radice dell'albero di derivazione
+        
+	# aggiunge simboli non terminali
+    def add_nt(self, simbolo):  
+    	# i controlli sono da rivedere
         if simbolo in self.terminali:
             raise ValueError(f"{simbolo} è un simbolo terminale")
 
@@ -30,8 +47,10 @@ class Grammatica:
             raise TypeError("Devi inserire una stringa")
 
         self.non_terminali.add(simbolo)
-
-    def add_t(self, simbolo):  # aggiunge simboli terminali
+        
+	# aggiunge simboli terminali
+    def add_t(self, simbolo):  
+    	# i controlli sono da rivedere
         if simbolo in self.non_terminali:
             raise ValueError(f"{simbolo} C( un simbolo non terminale")
 
@@ -45,8 +64,9 @@ class Grammatica:
             raise ValueError("Deve essere un non terminale")
 
         self.simbolo_iniziale = simbolo
-
-    def add_regole(self, chiave, valore):  # aggiunge una regola
+        
+	# aggiunge una regola
+    def add_regole(self, chiave, valore):  
         if (
             not isinstance(chiave, str)
             or not isinstance(valore, tuple)
@@ -55,8 +75,10 @@ class Grammatica:
             raise ValueError("Argomento non valido")  # da rivedere
 
         self.regole[chiave] = valore
-
-    def genera_stringa(self, maxi=10):
+        
+	# genera stringa casuale seguendo le regole della grammatica
+    def genera_stringa(self, maxi=10): 
+    	
 
         ris = self.simbolo_iniziale  # str
         i = 0
@@ -64,52 +86,37 @@ class Grammatica:
             for elem in ris:
                 if elem in self.non_terminali:
                     ris = ris.replace(elem, random.choice(self.regole[elem]))
-        i += 1
+        	i += 1
 
         return ris
 
     # sfida: generare albero di derivazione
-    def genera_albero_derivazione(self, n = 4, profondità = 0, figlio = 0, pnt = None, base = "nodo"):
-        while profondità < n:
-            if pnt == None:
-                # nome di variabile dinamico, perso 2 ore solo per questo 
-                #(locals() dizionario di variabili locali, globals() globali)
-                globals()['%s%d_%d' % (base,profondità,figlio)] = Nodo(self.simbolo_iniziale, profondità)
-                pnt = globals()['%s%d_%d' % (base,profondità,figlio)]
-            else:
-                profondità = pnt.profondita + 1 
-                #calcolare e memorizzare tutte le derivazione diventa 
-                #progressivamente più complicato 
-                #all'aumentare dei simboli non terminali
-                #per guadagnare salute mentale (poca) potremmo cambiare profondità 
-                #ad ogni non terminale incontrato e quindi avere una serie
-                #di sostituzioni parziali fino ad una certa profondità
-                tmp = pnt.valore
-                j = 0 
-                for char in tmp:
-                    if char in self.non_terminali:
-                        prod = set(self.regole[char])
-                        i = 0
-                        tmp_set = set()
-                        for elem in prod:
-                            tmp = pnt.valore.replace(char, elem)
-                            if not tmp_set or tmp not in tmp_set:
-                                tmp_set.add(tmp)
-                                globals()['%s%d_%d' % (base,profondità,i+j)] = Nodo(tmp, profondità)
-                                new = globals()['%s%d_%d' % (base,profondità,i+j)]
-                                pnt.aggiungi_figlio(new)
-                            
-                                i += 1
-                        j += 1 
-                
-                if pnt.figli:
-                    for i in range(len(pnt.figli)):
-                        self.genera_albero_derivazione(n, profondità, i, pnt.figli[i])
-                else:
-                    break
-        
-        return pnt #ritorno la radice alla fine se il cosmo si è allineato perfettamente
+    #calcolare e memorizzare tutte le derivazione diventa 
+    #progressivamente più complicato 
+    #all'aumentare dei simboli non terminali
+    #per guadagnare salute mentale (poca) potremmo cambiare profondità 
+    #ad ogni non terminale incontrato e quindi avere una serie
+    #di sostituzioni parziali fino ad una certa profondità
+   def genera_albero_derivazione(self, profondita_massima=7, profondita=0, nodo_corrente=None):
+        if nodo_corrente is None: # se non esiste creo una "radice"
+            nodo_corrente = Nodo(self.simbolo_iniziale, profondita)
+    
+        if profondita >= profondita_massima:
+            return nodo_corrente
+    
+        valore_attuale = nodo_corrente.valore
+    
+        for i, simbolo in enumerate(valore_attuale):# enumerate() genera una serie di tuple (indice, valore)
+            if simbolo in self.non_terminali:
+                for produzione in self.regole[simbolo]:
+                    nuovo_valore = valore_attuale[:i] + produzione + valore_attuale[i + 1:]
+                    nuovo_nodo = Nodo(nuovo_valore, profondita + 1)
+                    nodo_corrente.aggiungi_figlio(nuovo_nodo)
+                    # Ricorsione su ogni nuovo nodo generato
+                    self.genera_albero_derivazione(profondita_massima, profondita + 1, nuovo_nodo)
+        return nodo_corrente
 
+	# genera stringa casuale con (almeno) n iterazioni
     def genera_nIterazioni_random(self, n = 4):
         ris = self.simbolo_iniziale
         count = 0
