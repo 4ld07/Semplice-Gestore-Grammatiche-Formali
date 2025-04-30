@@ -60,7 +60,7 @@ class Grammatica:
 		TypeError -- il simbolo non è una stringa
 		"""
 		if simbolo in self.non_terminali:
-			raise ValueError(f"{simbolo} C( un simbolo non terminale")
+			raise ValueError(f"{simbolo} è un simbolo non terminale")
 
 		if not isinstance(simbolo, str):
 			raise TypeError("Devi inserire una stringa")
@@ -78,7 +78,7 @@ class Grammatica:
 		TypeError -- il simbolo non è una stringa
 		"""
 		if simbolo not in self.non_terminali:
-			raise ValueError("Deve essere un non terminale")
+			raise ValueError("Deve essere un simbolo non terminale")
 
 		if not isinstance(simbolo, str):
 			raise TypeError("Devi inserire una stringa")
@@ -124,6 +124,44 @@ class Grammatica:
 				# Esempio: P -> a | b | aPa
 					regola_str = " | ".join(produzioni)
 					file.write(f"{chiave} -> {regola_str}\n")
+
+	def carica_grammatica(self, filename="config.txt"):
+		with open(filename, "r") as file:
+			righe = file.readlines()
+
+		sezione = None
+		for riga in righe:
+			riga = riga.strip()
+			if not riga:
+				continue
+
+			if riga == "NON_TERMINALI:":
+				sezione = "nt"
+				continue
+			elif riga == "TERMINALI:":
+				sezione = "t"
+				continue
+			elif riga == "SIMBOLO_INIZIALE:":
+				sezione = "ini"
+				continue
+			elif riga == "REGOLE:":
+				sezione = "regole"
+				continue
+
+			if sezione == "nt":
+				for simbolo in riga.split(","):
+					self.add_nt(simbolo)
+			elif sezione == "t":
+				for simbolo in riga.split(","):
+					self.add_t(simbolo)
+			elif sezione == "ini":
+				self.set_ini(riga)
+			elif sezione == "regole":
+				if "->" in riga:
+					sinistra, destra = riga.split("->")
+					sinistra = sinistra.strip()
+					produzioni = [p.strip() for p in destra.split("|")]
+					self.add_regole(sinistra, tuple(produzioni))
 
 	def genera_stringa(self, maxi=10): 
 		"""Genera stringa casuale seguendo le regole della grammatica
@@ -212,7 +250,6 @@ class Grammatica:
 		for figlio in nodo.figli:
 			self.stampa_albero(figlio, livello + 1)
 
-	#probabilmente sarà eliminata
 	def genera_nIterazioni_random(self, n = 4):
 		"""Genera stringa casuale con (almeno) n iterazioni
 
@@ -284,37 +321,40 @@ class Grammatica:
 print("Stai per creare una grammatica ")
 f = Grammatica()
 
+#nelle funzioni seguenti viene usato strip() per rimuovere
+#eventuali spazi bianchi
+
 def aggiungi_nt():
-	i = str(input("Inserisci un simbolo, # per terminare "))
+	i = str(input("Inserisci un simbolo, # per terminare ")).strip()
 	while i != "#":
 		if i != "#":
 			f.add_nt(i)
-		i = str(input("Inserisci un simbolo, # per terminare "))
+		i = str(input("Inserisci un simbolo, # per terminare ")).strip()
 		
 
 def aggiungi_t():
-	i = str(input("Inserisci un simbolo, # per terminare "))
+	i = str(input("Inserisci un simbolo, # per terminare ")).strip()
 	while i != "#":
 		if i != "#":
 			f.add_t(i)
-		i = str(input("Inserisci un simbolo, # per terminare "))
+		i = str(input("Inserisci un simbolo, # per terminare ")).strip()
 		
 
 def aggiungi_regole():
 	print("Inserisci le regole, # per terminare ")
-	i = str(input("Inserisci un simbolo non terminale "))
+	i = str(input("Inserisci un simbolo non terminale ")).strip()
 	while i != "#":
 		produzioni = []
 		print("Inserisci possibili produzioni, # per terminare ")
-		j = str(input("Inserisci un simbolo terminale o non terminale "))
+		j = str(input("Inserisci un simbolo terminale o non terminale ")).strip()
 		while j != "#":
 			if j != "#":
 				produzioni.append(j)
 
-			j = str(input("Inserisci un simbolo terminale o non terminale "))
+			j = str(input("Inserisci un simbolo terminale o non terminale ")).strip()
 		if i != "#":
 			f.add_regole(i, tuple(produzioni))
-		i = str(input("Inserisci un simbolo non terminale "))
+		i = str(input("Inserisci un simbolo non terminale ")).strip()
 ins = -1
 while ins != 0:
 	print(
@@ -328,20 +368,45 @@ while ins != 0:
 		6 per generare una stringa casuale facendo almeno n iterazioni
 		7 per generare un albero di derivazione con n profondità
 		8 per stampare la struttura grammaticale
+		9 per salvare la grammatica
+		10 per caricare una grammatica
 		"""
 	)
-	ins = int(input("Inserisci la tua scelta "))
+	try:
+		ins = int(input("Inserisci la tua scelta "))
+	except ValueError:
+		print("Inserisci un numero valido ")
+		continue
 
 	match ins:
 		case 0:
 			print("Ciao")
 			ins = 0
 		case 1:
-			aggiungi_nt()
+			try:
+				aggiungi_nt()
+			except ValueError as err:
+				print(err)
+				continue
+			except TypeError as err:
+				print(err)
+				continue
+				
 		case 2:
-			aggiungi_t()
+			try:
+				aggiungi_t()
+			except ValueError as err:
+				print(err)
+				continue
+			except TypeError as err:
+				print(err)
+				continue
 		case 3:
-			f.set_ini(str(input("Inserisci il simbolo iniziale ")))
+			try:
+				f.set_ini(str(input("Inserisci il simbolo iniziale ")).strip())
+			except ValueError as err:
+				print(err)
+				continue
 		case 4:
 			aggiungi_regole()
 		case 5:
@@ -349,11 +414,20 @@ while ins != 0:
 		case 6:
 			print(f.genera_nIterazioni_random(int(input("Inserisci il numero minimo di iterazioni "))))
 		case 7:
-			f.add_albero(int(input("Inserisci la profondità dell'albero ")))
-			f.stampa_albero()
+			try:
+				f.add_albero(int(input("Inserisci la profondità dell'albero ")))
+			except ValueError as err:
+				print(err)
+				continue
+			else:
+				f.stampa_albero()
 		case 8:
 			print(f)
-		case -1:
+		case 9:
+			f.salva_grammatica()
+		case 10:
+			f.carica_grammatica()
+		case -1: #ignoro il -1
 			pass
 		case _:
 			print("Simbolo non valido")
