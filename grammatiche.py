@@ -210,8 +210,7 @@ class Grammatica:
 			nodo = self.radice
 		print(" " * livello * 2 + str(nodo.profondita) +" "+ str(nodo.valore))
 		for figlio in nodo.figli:
-			nodo = figlio
-			self.stampa_albero(nodo, livello + 1)
+			self.stampa_albero(figlio, livello + 1)
 
 	#probabilmente sarà eliminata
 	def genera_nIterazioni_random(self, n = 4):
