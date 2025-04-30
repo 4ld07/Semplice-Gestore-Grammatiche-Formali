@@ -93,14 +93,23 @@ class Grammatica:
 		valore -- tupla di possibili produzioni
 
 		Eccezioni:
-		ValueError -- non stringa o non tupla o lunghezza 0 o negativa
+		ValueError -- i simboli inseriti non fanno parte di terminali/non terminali
+		TypeError -- gli argomenti non sono del tipo giusto
 		"""
-		if (
-			not isinstance(chiave, str)
+		check = False
+		for elem in valore:
+			#if elem not in self.terminali and elem not in self.non_terminali:
+			#non devo guardare elem in se ma i suoi caratteri
+			if any(i not in self.terminali and i not in self.non_terminali for i in elem):
+				check = True
+
+		if chiave not in self.non_terminali or check:
+			raise ValueError("Devi inserire un simbolo presente fra i terminali/non terminali")
+
+		if (not isinstance(chiave, str)
 			or not isinstance(valore, tuple)
-			or len(valore) < 1
 		):
-			raise ValueError("Argomento non valido")  # da rivedere
+			raise TypeError("chiave -> stringa, valore -> tupla")
 
 		self.regole[chiave] = valore
 
@@ -173,14 +182,14 @@ class Grammatica:
 		ris -- stringa
 		"""
 		ris = self.simbolo_iniziale  # str
-		i = 0
-		while any(simbolo in self.non_terminali for simbolo in ris) and i < maxi:
+		j = 0
+		while any(simbolo in self.non_terminali for simbolo in ris) and j < maxi:
 			for i, elem in enumerate(ris):
 				if elem in self.non_terminali:
 					produzione = random.choice(self.regole[elem])
 					ris = ris[:i] + produzione + ris[i+1:]
 					break
-			i += 1
+			j += 1
 		if any(simbolo in self.non_terminali for simbolo in ris):
 			msg = "Non siamo arrivati ad una stringa valida"
 			return msg
@@ -242,13 +251,21 @@ class Grammatica:
 		nodo = self.genera_albero_derivazione(derivazioni)
 		self.radice = nodo
 
-	def stampa_albero(self, nodo = None, livello=0):
+	def stampa_albero(self, nodo = None, prefisso = "", ultimo = True):
 		"""Stampa l'albero di derivazione"""
 		if nodo is None:
 			nodo = self.radice
-		print(" " * livello * 2 + str(nodo.profondita) +" "+ str(nodo.valore))
-		for figlio in nodo.figli:
-			self.stampa_albero(figlio, livello + 1)
+			
+		#simboli per rappresentare i rami
+		ramo = "└── " if ultimo else "├── "
+		print(prefisso + ramo + f"[{nodo.profondita}] {nodo.valore}")
+		
+		#se ci sono figli preparo il nuovo prefisso e risetto ultimo
+		if nodo.figli:
+			nuovo_prefisso = prefisso + ("	 " if ultimo else "|	 ")
+			for i, figlio in enumerate(nodo.figli):
+				ultimo = (i == len(nodo.figli) - 1)
+				self.stampa_albero(figlio, nuovo_prefisso, ultimo)
 
 	def genera_nIterazioni_random(self, n = 4):
 		"""Genera stringa casuale con (almeno) n iterazioni
@@ -342,19 +359,25 @@ def aggiungi_t():
 
 def aggiungi_regole():
 	print("Inserisci le regole, # per terminare ")
+	
 	i = str(input("Inserisci un simbolo non terminale ")).strip()
 	while i != "#":
 		produzioni = []
 		print("Inserisci possibili produzioni, # per terminare ")
+		
 		j = str(input("Inserisci un simbolo terminale o non terminale ")).strip()
 		while j != "#":
 			if j != "#":
 				produzioni.append(j)
 
 			j = str(input("Inserisci un simbolo terminale o non terminale ")).strip()
+
 		if i != "#":
 			f.add_regole(i, tuple(produzioni))
+
 		i = str(input("Inserisci un simbolo non terminale ")).strip()
+
+#loop infinito per il menu
 ins = -1
 while ins != 0:
 	print(
