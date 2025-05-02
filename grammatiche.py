@@ -260,7 +260,7 @@ class Grammatica:
 		ramo = "└── " if ultimo else "├── "
 		print(prefisso + ramo + f"[{nodo.profondita}] {nodo.valore}")
 		
-		#se ci sono figli preparo il nuovo prefisso e risetto ultimo
+		#se ci sono figli preparo il nuovo prefisso e ri-setto ultimo
 		if nodo.figli:
 			nuovo_prefisso = prefisso + ("	 " if ultimo else "|	 ")
 			for i, figlio in enumerate(nodo.figli):
