@@ -1,8 +1,5 @@
 import random
 
-# i controlli sulla qualità degli inserimenti sono da rivedere
-# in alcuni casi non sono proprio presenti
-
 # struttura per creare un albero
 # in questo codice viene usato per memorizzare le varie derivazioni
 class Nodo:
@@ -279,7 +276,7 @@ class Grammatica:
 		ris = self.simbolo_iniziale
 		count = 0
 		#any() e all() valutano una serie di espressioni simile a or e and
-		#usati per capire da cosa sono composte le produzioni
+		#usati per iterare sui singoli caratteri delle produzioni
 		while count < n - 1:
 			for elem in ris:
 				if elem in self.non_terminali:
@@ -294,11 +291,11 @@ class Grammatica:
 		while any(simbolo in self.non_terminali for simbolo in ris):
 			for elem in ris:
 				if elem in self.non_terminali:
-					choice_t = []
+					choice_t = []#pool di caratteri terminali fra cui scegliere
 					for i in self.regole[elem]:
 						if all(a not in self.non_terminali for a in i):
 							choice_t.append(i)
-					choice_nt = []
+					choice_nt = []#pool di caratteri non terminali fra cui scegliere
 					for j in self.regole[elem]:
 						if any(b in self.non_terminali for b in j):
 							choice_nt.append(j)
