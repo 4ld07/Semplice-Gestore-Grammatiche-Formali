@@ -278,18 +278,21 @@ class Grammatica:
 		#any() e all() valutano una serie di espressioni simile a or e and
 		#usati per iterare sui singoli caratteri delle produzioni
 		while count < n - 1:
-			for elem in ris:
+			for j, elem in enumerate(ris):
 				if elem in self.non_terminali:
 					choice = []
 					for i in self.regole[elem]:
 						if any(a in self.non_terminali for a in i):
 							choice.append(i)
-					ris = ris.replace(elem, random.choice(choice))
+					if choice:
+						ris = ris[:j] + random.choice(choice) + ris[j + 1:]
+					else:
+						ris = ris[:j] + random.choice(self.regole[elem]) + ris[j + 1:]
 			count += 1
 
 		#uso da criminali del while, itero finchè c'è almeno un non terminale
 		while any(simbolo in self.non_terminali for simbolo in ris):
-			for elem in ris:
+			for z, elem in enumerate(ris):
 				if elem in self.non_terminali:
 					choice_t = []#pool di caratteri terminali fra cui scegliere
 					for i in self.regole[elem]:
@@ -300,12 +303,12 @@ class Grammatica:
 						if any(b in self.non_terminali for b in j):
 							choice_nt.append(j)
 					if choice_t:
-						ris = ris.replace(elem, random.choice(choice_t))
+						ris = ris[:z] + random.choice(choice_t) + ris[z + 1:]
 					else:
-						ris = ris.replace(elem, random.choice(choice_nt))
+						ris = ris[:z] + random.choice(choice_nt) + ris[z + 1:]
 
 		if any(simbolo in self.non_terminali for simbolo in ris):
-			msg = "Non siamo arrivati ad una stringa valida"
+			msg = "Non siamo arrivati ad una stringa valida: " + ris
 			return msg
 		else:
 			return ris
